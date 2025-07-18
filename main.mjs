@@ -11,9 +11,13 @@ if (process.env.PROXY_SERVER) {
 
 const browser = await puppeteer.launch({
     defaultViewport: { width: 1080, height: 1024 },
+    headless: false,
     args,
 })
 const [page] = await browser.pages()
+await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false })
+})
 const userAgent = await browser.userAgent()
 await page.setUserAgent(userAgent.replace('Headless', ''))
 const recorder = await page.screencast({ path: 'recording.webm' })
@@ -38,6 +42,10 @@ try {
     const body = await page.$eval('img[src^="data:"]', img => img.src)
     const code = await fetch('https://captcha-120546510085.asia-northeast1.run.app', { method: 'POST', body }).then(r => r.text())
     await page.locator('[placeholder="上の画像の数字を入力"]').fill(code)
+    await page.waitForFunction(() => {
+        const el = document.querySelector('input[name="cf-turnstile-response"]');
+        return el && el.value && el.value.length > 10;
+    }, { timeout: 10000 })
     await page.locator('text=無料VPSの利用を継続する').click()
 } catch (e) {
     console.error(e)
