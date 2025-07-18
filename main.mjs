@@ -10,7 +10,7 @@ if (process.env.PROXY_SERVER) {
 }
 
 const browser = await puppeteer.launch({
-    headless: new,
+    headless: true,
     defaultViewport: { width: 1080, height: 1024 },
     args,
 })
