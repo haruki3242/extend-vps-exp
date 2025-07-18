@@ -49,12 +49,29 @@ if (location.pathname.startsWith('/xapanel/xvps/server/freevps/extend/index')) {
     document.querySelector('[formaction="/xapanel/xvps/server/freevps/extend/conf"]').click()
 }
 
-// Solve CAPTCHA
-if ((location.pathname.startsWith('/xapanel/xvps/server/freevps/extend/conf') || location.pathname.startsWith('/xapanel/xvps/server/freevps/extend/do')) && unsafeWindow.submit_button) {
-    const body = document.querySelector('img[src^="data:"]').src
-    const code = await fetch('https://captcha-120546510085.asia-northeast1.run.app', { method: 'POST', body }).then(r => r.text())
-    document.querySelector('[placeholder="上の画像の数字を入力"]').value = code
-    setInterval(() => {
-        if (document.querySelector('[name=cf-turnstile-response]').value) unsafeWindow.submit_button.click()
-    }, 1000)
+// CAPTCHA処理 + Turnstile対策
+if (
+    location.pathname.startsWith('/xapanel/xvps/server/freevps/extend/conf') ||
+    location.pathname.startsWith('/xapanel/xvps/server/freevps/extend/do')
+) {
+    (async () => {
+        // CAPTCHA 画像取得 → APIでOCR
+        const imgSrc = document.querySelector('img[src^="data:"]')?.src
+        if (!imgSrc) return;
+        const code = await fetch('https://captcha-120546510085.asia-northeast1.run.app', {
+            method: 'POST',
+            body: imgSrc
+        }).then(r => r.text()).catch(() => '')
+
+        document.querySelector('[placeholder="上の画像の数字を入力"]')?.value = code
+
+        // ✅ Turnstileのトークンがセットされるまで待ってsubmit
+        const waitForTurnstile = setInterval(() => {
+            const token = document.querySelector('[name="cf-turnstile-response"]')?.value
+            if (token && token.length > 10) {
+                clearInterval(waitForTurnstile)
+                unsafeWindow.submit_button?.click()
+            }
+        }, 500)
+    })()
 }
