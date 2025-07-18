@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer'
+wimport puppeteer from 'puppeteer'
 import { setTimeout } from 'node:timers/promises'
 
 const args = ['--no-sandbox', '--disable-setuid-sandbox']
@@ -10,8 +10,8 @@ if (process.env.PROXY_SERVER) {
 }
 
 const browser = await puppeteer.launch({
+    headless: new,
     defaultViewport: { width: 1080, height: 1024 },
-    headless: false,
     args,
 })
 const [page] = await browser.pages()
