@@ -1,4 +1,4 @@
-wimport puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer'
 import { setTimeout } from 'node:timers/promises'
 
 const args = ['--no-sandbox', '--disable-setuid-sandbox']
